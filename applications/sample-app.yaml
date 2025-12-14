@@ -1,0 +1,87 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: sample-app
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  labels:
+    app: sample-app
+    environment: production
+spec:
+  project: default
+  
+  # Source configuration - where your app manifests are stored
+  source:
+    # Git repository URL
+    repoURL: https://github.com/your-username/your-repo.git
+    # Target revision (branch, tag, or commit SHA)
+    targetRevision: HEAD
+    # Path to the manifests within the repository
+    path: manifests
+    
+    # Optional: Directory recursion
+    directory:
+      recurse: true
+      
+    # Optional: Helm configuration (uncomment if using Helm)
+    # helm:
+    #   valueFiles:
+    #     - values.yaml
+    #   parameters:
+    #     - name: image.tag
+    #       value: "v1.0.0"
+    
+    # Optional: Kustomize configuration (uncomment if using Kustomize)
+    # kustomize:
+    #   namePrefix: prod-
+    #   commonLabels:
+    #     environment: production
+  
+  # Destination configuration - where to deploy
+  destination:
+    # Target cluster (in-cluster or external cluster URL)
+    server: https://kubernetes.default.svc
+    # Target namespace
+    namespace: default
+  
+  # Sync policy configuration
+  syncPolicy:
+    # Automated sync configuration
+    automated:
+      # Automatically sync when changes are detected
+      prune: true
+      # Allow empty resources to be pruned
+      selfHeal: true
+      # Allow Argo to make changes if resources drift
+      allowEmpty: false
+    
+    # Sync options
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+      - RespectIgnoreDifferences=true
+      - ApplyOutOfSyncOnly=true
+    
+    # Retry configuration
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+  
+  # Health check configuration
+  revisionHistoryLimit: 10
+  
+  # Ignore differences for specific fields (optional)
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      jsonPointers:
+        - /spec/replicas
+    - group: ""
+      kind: Service
+      jsonPointers:
+        - /spec/clusterIP
