@@ -14,7 +14,7 @@ spec:
   # Source configuration - where your app manifests are stored
   source:
     # Git repository URL
-    repoURL: https://github.com/your-username/your-repo.git
+    repoURL: https://github.com/pjsaha1976/argocd.git
     # Target revision (branch, tag, or commit SHA)
     targetRevision: HEAD
     # Path to the manifests within the repository
